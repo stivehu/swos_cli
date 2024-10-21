@@ -1,5 +1,5 @@
-import requests
 from requests.auth import HTTPDigestAuth
+from controllers.mac_address_table_controller import MacAddressTableController
 
 class SwOSController:
     def __init__(self, ip_address, username, password):
@@ -9,29 +9,19 @@ class SwOSController:
         self.base_url = f"http://{self.ip_address}"
         self.auth = HTTPDigestAuth(self.username, self.password)
 
-        if self.authenticate():
-            print("Authentication successful")
-        else:
-            print("Authentication failed")
+        # Initialize MacAddressTableController
+        self.mac_address_table_controller = MacAddressTableController(self.base_url, self.auth)
 
     def authenticate(self):
+        """
+        Authenticate by attempting to retrieve the 'sys.b' file from the SwOS device.
+        If the file can be fetched successfully, authentication is considered successful.
+        """
         try:
-            response = requests.get(f"{self.base_url}/fan.b", auth=self.auth)
-            if response.status_code == 200:
+            response = requests.get(f"{self.base_url}/sys.b", auth=self.auth)
+            if response.status_code == 200 and response.text:
                 return True
-            else:
-                return False
+            return False
         except requests.RequestException as e:
             print(f"Error during authentication: {e}")
             return False
-
-    # Például itt kérdezhetjük le a portokat
-    def show_ports(self):
-        try:
-            response = requests.get(f"{self.base_url}/ports", auth=self.auth)
-            if response.status_code == 200:
-                print(response.json())  # Vagy a megfelelő formátum szerint dolgozzuk fel
-            else:
-                print(f"Failed to retrieve ports: {response.status_code}")
-        except requests.RequestException as e:
-            print(f"Error fetching ports: {e}")
